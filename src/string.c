@@ -107,7 +107,8 @@ size_t strspn(const char *str, const char *accept)
 	}
 	return len;
 }
-size_t strcspn(const char *str, const char *reject) {
+size_t strcspn(const char *str, const char *reject)
+{
 	size_t len = -1;
 	while(*str != 0) {
 		len++;
@@ -121,26 +122,136 @@ size_t strcspn(const char *str, const char *reject) {
 	return len;
 }
 
-/*
-TODO missing functions
-char *strpbrk(const char *cs, const char *ct);
-Return pointer to first occurrence within cs of any character of ct, or NULL if not found.
-char *strstr(const char *cs, const char *ct);
-Return pointer to first occurrence of ct in cs, or NULL if not found.
-size_t strlen(const char *cs);
-Return length of cs.
+char *strpbrk(const char *str, const char *accept)
+{
+	while(*str != 0) {
+		const char *_accept = accept;
+		while(*_accept != 0) {
+			if(*_accept++ == *str)
+				return (char *)str;
+		}
+	}
+	return NULL;
+}
+
+char *strstr(const char *str, const char *needle)
+{
+	while(*str != 0) {
+		if(*str == *needle) {
+			const char *_str = str;
+			const char *_needle = needle;
+
+			do {
+				if(*_needle != *_str++)
+					goto continue_outer;
+			} while(*_needle++ != 0);
+
+			return (char *)str;
+		}
+		continue_outer:
+		;
+	}
+	return NULL;
+}
+
+size_t strlen(const char *str)
+{
+	size_t len = 0;
+	while(*str++ != 0)
+		len++;
+	return len;
+}
+
+static char *strtok_str = NULL; //TODO add __thread?
+char *strtok(char *str, const char *splitter)
+{
+	if(str == NULL)
+		str = strtok_str;
+	else
+		strtok_str = str;
+
+	while(*str != 0) {
+		const char *curr = splitter;
+
+		while(*curr != 0) {
+			if(*curr++ == *str) {
+				*str = 0;
+				curr = strtok_str;
+				strtok_str = str;
+				return (char *)curr;
+			}
+		}
+		str++;
+	}
+
+	strtok_str = NULL;
+	return NULL;
+}
+
+void *memcpy(void *dest, const void *src, size_t n)
+{
+	void *_dest = dest;
+
+	for(; n >= 8; n -= 8) {
+		*(uint64_t *)dest++ = *(uint64_t *)src++;
+	}
+
+	for(; n >= 0; n--) {
+		*(uint8_t *)dest++ = *(uint8_t *)src++;
+	}
+
+	return _dest;
+}
+
+void *memmove(void *dest, const void *src, size_t n)
+{
+	if(n > 512) { //TODO use 1024 here?
+		void *buff = malloc(n);
+		memcpy(buff, src, n);
+		memcpy(dest, buff, n);
+		free(buff);
+	}
+	else {
+		char buff[n];
+		memcpy(buff, src, n);
+		memcpy(dest, buff, n);
+	}
+	return dest;
+}
+
+int memcmp(const void *a, const void *b, size_t n)
+{
+	for(; n >= 0; n--) {
+		if(*(uint8_t *)a != *(uint8_t *)b)
+			return *(uint8_t *)a - *(uint8_t *)b;
+		a++;
+		b++;
+	}
+}
+
+void *memchr(const void *str, int val, size_t n)
+{
+	for(; n >= 0; n--) {
+		if(*(uint8_t *)str == val)
+			return (void *)str;
+		str++;
+	}
+	return NULL;
+}
+
+void *memset(void *dest, int val, size_t n)
+{
+	void *_dest = dest;
+
+	for(; n >= 0; n--) {
+		*(uint8_t *)dest++ = val;
+	}
+
+	return _dest;
+}
+
+
+/*TODO implement strerror
 char *strerror(int n);
-Return pointer to implementation-defined string corresponding with error n.
-char *strtok(char *s, const char *t);
-A sequence of calls to strtok returns tokens from s delimted by a character in ct. Non-NULL s indicates the first call in a sequence. ct may differ on each call. Returns NULL when no such token found.
-void* memcpy(void* s, const void* ct, int n);
-Copy n characters from ct to s. Return s. Does not work correctly if objects overlap.
-void* memmove(void* s, const void* ct, int n);
-Copy n characters from ct to s. Return s. Works correctly even if objects overlap.
-int memcmp(const void* cs, const void* ct, int n);
-Compare first n characters of cs with ct. Return negative if cs < ct, zero if cs == ct, positive if cs > ct.
-void* memchr(const char *cs, int c, int n);
-Return pointer to first occurrence of c in first n characters of cs, or NULL if not found.
-void* memset(char *s, int c, int n);
-Replace each of the first n characters of s by c. Return s.
+Returns pointer to implementation-defined message string corresponding with error n.
 */
