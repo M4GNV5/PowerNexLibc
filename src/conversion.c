@@ -58,7 +58,7 @@ long atol(const char *str)
 
 const char lowerItoaChars[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 const char upperItoaChars[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-int uitoa(uint64_t val, char *str, int base, bool lowerCase)
+int utoa(uint64_t val, char *str, int base, bool lowerCase)
 {
 	if(val == 0) {
 		str[0] = '0';
@@ -83,14 +83,16 @@ int uitoa(uint64_t val, char *str, int base, bool lowerCase)
 	}
 	return len;
 }
-int itoa(int64_t val, char *str, int base, bool lowerCase)
+int itoa(int64_t val, char *str, char sign)
 {
 	if(val < 0) {
 		*str = '-';
-		return 1 + uitoa(-val, str + 1, base, lowerCase);
+		return 1 + utoa(-val, str + 1, 10, true);
 	}
 	else {
-		return uitoa(val, str, base, lowerCase);
+		if(sign != 0)
+			*str++ = sign;
+		return utoa(val, str, 10, true) + (sign == 0 ? 0 : 1);
 	}
 }
 

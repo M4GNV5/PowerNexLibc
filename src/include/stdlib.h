@@ -14,6 +14,13 @@ unsigned long strtoul(const char* s, const char** endp, int base);
 int atoi(const char* s);
 long atol(const char* s);
 
+#ifdef _PWRNX_SOURCE
+#include <stdint.h>
+#include <stdbool.h>
+int utoa(uint64_t val, char *str, int base, bool lowerCase);
+int itoa(int64_t val, char *str, char sign);
+#endif
+
 //
 //stdlib.c
 //

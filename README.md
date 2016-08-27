@@ -22,4 +22,8 @@ int atexit_data(void (*func)(void *data), void *data);
 //(used for sprintf/snprintf)
 FILE *sopen(char *str);
 FILE *snopen(char *str, int max);
+
+//converts an (unsigned-)integer to its string representation (mainly for use within printf)
+int uitoa(uint64_t val, char *str, int base, bool lowerCase);
+int itoa(int64_t val, char *str, int base, bool lowerCase);
 ```
