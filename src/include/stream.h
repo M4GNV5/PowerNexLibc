@@ -28,7 +28,7 @@ extern FILE *stdin;
 extern FILE *stdout;
 extern FILE *stderr;
 
-void pwrnx_strstream_create(FILE *fd, char *str, int max);
+void strstream_create(FILE *fd, char *str, int max);
 
 #ifdef _PWRNX_SOURCE
 //TODO move these to stdio.h

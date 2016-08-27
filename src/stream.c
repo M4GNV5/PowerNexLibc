@@ -58,7 +58,7 @@ void strstream_create(FILE *fd, char *str, int max)
 FILE *snopen(char *str, int max)
 {
 	FILE *fd = malloc(sizeof(FILE));
-	pwrnx_strstream_create(fd, str, max);
+	strstream_create(fd, str, max);
 	return fd;
 }
 FILE *sopen(char *str)
