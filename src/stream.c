@@ -19,6 +19,9 @@ static void stdout_putc(FILE* fd, char val)
 	/*if(fd != &stdoutv)
 		//wat do?*/
 
+	if(val == 0)
+		return;
+
 	int pos = fd->data.stdout.pos++;
 	if(val == '\n') {
 		fd->data.stdout.buff[pos] = 0;
