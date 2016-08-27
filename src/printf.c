@@ -3,6 +3,7 @@
 #include "include/stream.h"
 #include "include/ctype.h"
 #include "include/stdlib.h"
+#include "include/string.h"
 
 void strstream_create(FILE *fd, char *str, int max); //stream.c
 int vfprintf(FILE *fd, const char *fmt, va_list ap);
@@ -80,8 +81,24 @@ static void vprintPad(FILE *fd, int length, char padChar)
 
 static int fprintString(FILE *fd, const char *str, struct printfmt *fmt)
 {
-	//TODO
-	return 0;
+	int len = strlen(str);
+	if(fmt->precision <= 0)
+		fmt->precision = len + 1;
+
+	if(!fmt->leftAdjust && fmt->width > len) {
+		vprintPad(fd, fmt->width - len, fmt->pad);
+		len = fmt->width;
+	}
+
+	for(int i = 0; str[i] != 0 && i < fmt->precision; i++)
+		fd->putc(fd, str[i]);
+
+	if(fmt->leftAdjust && fmt->width > len) {
+		vprintPad(fd, fmt->width - len, fmt->pad);
+		len = fmt->width;
+	}
+
+	return len;
 }
 
 static int vfprintInt(FILE *fd, va_list ap, struct printfmt *fmt)
@@ -324,5 +341,7 @@ int vfprintf(FILE *fd, const char *fmt, va_list ap)
 			;
 		}
 	}
+
+	fd->putc(fd, 0);
 	return written;
 }

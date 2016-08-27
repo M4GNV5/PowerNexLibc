@@ -3,7 +3,7 @@ C standard library for a GLORIOUS C MASTERRACE USERSPACE (or just the first step
 
 ##Currently missing:
 - `time.h`
-- `stdio.h` (however there is an incomplete inplementation of the `xxprintf`-functions)
+- `stdio.h` (however the `xxprintf`-functions are implemented)
 - `stdlib.h`: `system`, `getenv`, `bsearch`, `qsort`
 - `string.h`: partly implemented
 
