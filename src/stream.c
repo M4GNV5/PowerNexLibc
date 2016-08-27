@@ -1,5 +1,6 @@
 #include "include/stream.h"
 #include "include/stdlib.h"
+#include "include/syscall.h"
 
 static void stdout_putc(FILE* fd, char val);
 static char stdoutBuff[BUFSIZ];
@@ -21,7 +22,8 @@ static void stdout_putc(FILE* fd, char val)
 	int pos = fd->data.stdout.pos++;
 	if(val == '\n') {
 		fd->data.stdout.buff[pos] = 0;
-
+		syscall_puts(fd->data.stdout.buff);
+		fd->data.stdout.pos = 0;
 	}
 	else {
 		fd->data.stdout.buff[pos] = val;
