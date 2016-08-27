@@ -5,7 +5,7 @@ C standard library for a GLORIOUS C MASTERRACE USERSPACE (or just the first step
 - `time.h`
 - `stdio.h` (however the `xxprintf`-functions are implemented)
 - `stdlib.h`: `system`, `getenv`, `bsearch`, `qsort`
-- `string.h`: partly implemented
+- `string.h`: `strerror`
 
 ##Extension functions:
 ```C
