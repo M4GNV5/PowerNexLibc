@@ -2,7 +2,7 @@
 .global syscall_\name
 .type syscall_\name, %function
 syscall_\name:
-	movq \id, %rax
+	movq $\id, %rax
 	int $0x80
 	ret
 .endm
@@ -14,4 +14,4 @@ SYSCALL yield, 3
 SYSCALL exec, 4
 SYSCALL alloc, 5
 SYSCALL free, 6
-SYSCALL puts, 7
+SYSCALL puts, 16
