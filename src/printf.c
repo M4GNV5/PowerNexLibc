@@ -61,16 +61,30 @@ int fprintf(FILE *fd, const char *fmt, ...)
 struct printfmt
 {
 	bool leftAdjust;
-	bool alwaysSign;
 	bool alternateForm;
-	bool spaceSign;
-	bool zeroPad;
 	bool lowerCase;
+	char sign;
+	char pad;
 	int width;
 	int precision;
 	int size;
 };
-int vfprintInt(FILE *fd, va_list ap, struct printfmt *fmt)
+
+static void vprintPad(FILE *fd, int length, char padChar)
+{
+	for(int i = 0; i < length; i++)
+	{
+		fd->putc(fd, padChar);
+	}
+}
+
+static int fprintString(FILE *fd, const char *str, struct printfmt *fmt)
+{
+	//TODO
+	return 0;
+}
+
+static int vfprintInt(FILE *fd, va_list ap, struct printfmt *fmt)
 {
 	int64_t val;
 	switch(fmt->size)
@@ -92,14 +106,38 @@ int vfprintInt(FILE *fd, va_list ap, struct printfmt *fmt)
 			break;
 	}
 
-	//TODO vfprintInt
-	return val;
+	char buff[fmt->precision + 16];
+	char *str = buff + fmt->precision;
+	int len = itoa(val, str, fmt->sign);
+
+	if(len < fmt->precision) {
+		len = fmt->precision - len;
+		str -= len;
+
+		for(int i = 0; i < len; i++)
+			str[i] = '0';
+
+		len = fmt->precision;
+	}
+	if(!fmt->leftAdjust && fmt->width > len) {
+		vprintPad(fd, fmt->width - len, fmt->pad);
+		len = fmt->width;
+	}
+
+	for(int i = 0; str[i] != 0; i++)
+		fd->putc(fd, str[i]);
+
+	if(fmt->leftAdjust && fmt->width > len) {
+		vprintPad(fd, fmt->width - len, fmt->pad);
+		len = fmt->width;
+	}
+
+	return len;
 }
-int vfprintUint(FILE *fd, va_list ap, struct printfmt *fmt, int base)
+static int vfprintUint(FILE *fd, va_list ap, struct printfmt *fmt, int base)
 {
 	uint64_t val;
-	switch(fmt->size)
-	{
+	switch(fmt->size) {
 		case -2:
 			val = va_arg(ap, unsigned int) & 0xFF;
 			break;
@@ -117,17 +155,60 @@ int vfprintUint(FILE *fd, va_list ap, struct printfmt *fmt, int base)
 			break;
 		case 3:
 			val = (uint64_t)va_arg(ap, void *);
+			if(val == 0)
+				return fprintString(fd, "(null)", fmt);
 			break;
 	}
 
-	//TODO vfprintUint
-	return val;
-}
+	char buff[fmt->precision + 16];
+	char *str = buff + fmt->precision;
+	int len;
 
-int fprintString(FILE *fd, const char *str, struct printfmt *fmt)
-{
-	//TODO
-	return 0;
+	if(!fmt->alternateForm) {
+		len = 0;
+	}
+	else {
+		switch(base) {
+			case 8:
+				*str++ = '0';
+				len = 1;
+				break;
+			case 16:
+				*str++ = '0';
+				*str++ = fmt->lowerCase ? 'x' : 'X';
+				len = 2;
+				break;
+			default:
+				len = 0;
+				break;
+		}
+	}
+	len += utoa(val, str, base, fmt->lowerCase);
+	str = buff + fmt->precision;
+
+	if(len < fmt->precision) {
+		len = fmt->precision - len;
+		str -= len;
+
+		for(int i = 0; i < len; i++)
+			str[i] = '0';
+
+		len = fmt->precision;
+	}
+	if(!fmt->leftAdjust && fmt->width > len) {
+		vprintPad(fd, fmt->width - len, fmt->pad);
+		len = fmt->width;
+	}
+
+	for(int i = 0; i < len; i++)
+		fd->putc(fd, str[i]);
+
+	if(fmt->leftAdjust && fmt->width > len) {
+		vprintPad(fd, fmt->width - len, fmt->pad);
+		len = fmt->width;
+	}
+
+	return len;
 }
 
 int vfprintf(FILE *fd, const char *fmt, va_list ap)
@@ -143,13 +224,12 @@ int vfprintf(FILE *fd, const char *fmt, va_list ap)
 		else {
 			struct printfmt currfmt = {
 				false, //leftAdjust
-				false, //alwaysSign
 				false, //alternateForm
-				false, //spaceSign
-				false, //zeroPad
 				false, //lowerCase
-				-1, //width
-				-1, //precision
+				0, //sign
+				' ', //pad
+				0, //width
+				0, //precision
 				0 //size
 			};
 			while(true) {
@@ -163,16 +243,16 @@ int vfprintf(FILE *fd, const char *fmt, va_list ap)
 						currfmt.leftAdjust = true;
 						break;
 					case '+':
-						currfmt.alwaysSign = true;
+						currfmt.sign = '+';
 						break;
 					case '#':
 						currfmt.alternateForm = true;
 						break;
 					case ' ':
-						currfmt.spaceSign = true;
+						currfmt.sign = ' ';
 						break;
 					case '0':
-						currfmt.zeroPad = true;
+						currfmt.pad = '0';
 						break;
 					case 'h':
 						if(*fmt == 'h') {
@@ -191,6 +271,7 @@ int vfprintf(FILE *fd, const char *fmt, va_list ap)
 						else {
 							currfmt.size = 1; //long
 						}
+						break;
 					case 'd':
 					case 'i':
 						written += vfprintInt(fd, ap, &currfmt);
@@ -214,8 +295,7 @@ int vfprintf(FILE *fd, const char *fmt, va_list ap)
 						goto end_outer;
 					case 'p':
 						currfmt.size = 3;
-						fd->putc(fd, '0');
-						fd->putc(fd, 'x');
+						currfmt.alternateForm = true;
 						written += 2 + vfprintUint(fd, ap, &currfmt, 16);
 						goto end_outer;
 					case 'n':
@@ -224,13 +304,20 @@ int vfprintf(FILE *fd, const char *fmt, va_list ap)
 					case '.':
 						if(isdigit(*fmt))
 							currfmt.precision = strtol(fmt, &fmt, 10);
-						else
-							return -1;
+						else if(*fmt != '*')
+							currfmt.precision = 0;
+						else if(*fmt++ == '*')
+							currfmt.precision = va_arg(ap, int);
+						break;
+					case '*':
+						currfmt.width = va_arg(ap, int);
+						break;
 					default:
 						if(isdigit(curr))
-							currfmt.width = strtol(fmt, &fmt, 10);
+							currfmt.width = strtol(fmt - 1, &fmt, 10);
 						else
 							return -1;
+						break;
 				}
 			}
 			end_outer:

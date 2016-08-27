@@ -2,7 +2,7 @@ CC = gcc
 AS = as
 BIN = bin
 
-CFLAGS = -Wall -g -std=c99 -fPIC -ffreestanding
+CFLAGS = -Wall -g -std=c99 -fPIC -ffreestanding -D_PWRNX_SOURCE
 
 OBJECTS += $(BIN)/syscall.o
 OBJECTS += $(BIN)/malloc.o
