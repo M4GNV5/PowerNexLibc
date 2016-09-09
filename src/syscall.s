@@ -1,10 +1,32 @@
+/* ["RDI", "RSI", "RDX", "R8", "R9", "R10", "R12", "R13", "R14", "R15"] */
+
+.type syscall, %function
+syscall:
+	push %r12
+	push %r13
+	push %r14
+	push %r15
+
+	mov %r9, %r10
+	mov %r8, %r9
+	mov %rcx, %r8
+	syscall
+
+	pop %r15
+	pop %r14
+	pop %r13
+	pop %r12
+
+	ret
+
+
+
 .macro syscall name, id
 .global syscall_\name
 .type syscall_\name, %function
 syscall_\name:
 	movq $\id, %rax
-	int $0x80
-	ret
+	jmp syscall
 .endm
 
 SYSCALL exit, 0
