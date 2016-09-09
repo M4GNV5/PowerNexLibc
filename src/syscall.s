@@ -14,4 +14,6 @@ SYSCALL yield, 3
 SYSCALL exec, 4
 SYSCALL alloc, 5
 SYSCALL free, 6
+SYSCALL realloc, 7
+SYSCALL nputs, 15
 SYSCALL puts, 16

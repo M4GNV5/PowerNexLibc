@@ -33,16 +33,13 @@ make
 gcc -c myCreatedFile.c -o init.o
 ld -nostdlib init.o bin/pwrnxlibc.a -o Init
 ```
-Then move the generated Init file into Initrd/Binary in your powernex directory,
+Then move the generated Init file into Initrd/Binary in your PowerNex directory,
 make sure it wont be overwritten by the PowerNex build system and start PowerNex
 
 ##Extension functions:
 ```C
 //before including headers define:
 #define _PWRNX_SOURCE
-
-//returns the size of the allocated memory area
-size_t malloc_size(void *ptr);
 
 //same as atexit but supports passing a data pointer to the exit handler
 int atexit_data(void (*func)(void *data), void *data);
